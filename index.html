@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Don Cuco's Seasoning Blend Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --chili:#C0392B; --gold:#E8A020; --cream:#FDF6E3; --dark:#1A0A00;
+    --terra:#8B3A0F; --smoke:#6B5B4E; --sand:#D4B896;
+    --salt-0:#C0392B; --salt-25:#E8A020; --salt-50:#5D8A1F; --salt-75:#2980B9;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background-color:var(--dark);color:var(--cream);font-family:'Libre Baskerville',serif;min-height:100vh;overflow-x:hidden;}
+  body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(ellipse at 20% 50%,rgba(192,57,43,.15) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(232,160,32,.12) 0%,transparent 50%);pointer-events:none;z-index:0;}
+  .wrapper{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 20px;}
+
+  header{text-align:center;padding:50px 20px 30px;}
+  .logo-band{display:inline-flex;align-items:center;gap:16px;background:var(--chili);padding:6px 24px;transform:skewX(-3deg);margin-bottom:20px;box-shadow:4px 4px 0 var(--terra);}
+  .logo-band span{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--cream);transform:skewX(3deg);}
+  h1{font-family:'Playfair Display',serif;font-size:clamp(42px,8vw,88px);font-weight:900;line-height:.9;color:var(--gold);text-shadow:3px 3px 0 var(--terra),6px 6px 0 rgba(0,0,0,.3);letter-spacing:-2px;}
+  h1 em{display:block;font-style:italic;color:var(--cream);font-size:.55em;letter-spacing:0;text-shadow:2px 2px 0 var(--smoke);}
+  .subtitle{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--sand);margin-top:14px;}
+  .baja-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(41,128,185,.15);border:1px solid rgba(41,128,185,.4);padding:7px 16px;margin-top:14px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#7fb3d3;}
+  .baja-badge .baja-dot{width:8px;height:8px;border-radius:50%;background:#2980B9;box-shadow:0 0 6px #2980B9;}
+
+  .divider{display:flex;align-items:center;gap:16px;margin:30px auto;max-width:600px;}
+  .divider-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+  .divider-icon{color:var(--gold);font-size:20px;}
+
+  /* ── COPYCAT SECTION ── */
+  .copycat-section{background:rgba(255,255,255,.03);border:1px solid rgba(192,57,43,.3);padding:32px;margin-bottom:36px;position:relative;overflow:hidden;}
+  .copycat-section::before{content:'COPYCAT';position:absolute;right:-30px;top:50%;transform:translateY(-50%) rotate(90deg);font-family:'Playfair Display',serif;font-size:60px;font-weight:900;color:rgba(255,255,255,.025);pointer-events:none;letter-spacing:8px;}
+  .copycat-input-row{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;}
+  .copycat-input{flex:1;min-width:200px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:var(--cream);font-family:'Libre Baskerville',serif;font-size:15px;padding:12px 16px;outline:none;transition:border-color .2s;}
+  .copycat-input::placeholder{color:var(--smoke);font-style:italic;}
+  .copycat-input:focus{border-color:var(--chili);}
+  .btn-copycat{background:var(--chili);color:var(--cream);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;padding:12px 24px;border:none;cursor:pointer;transition:all .2s;white-space:nowrap;}
+  .btn-copycat:hover:not(:disabled){background:#a93226;transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--terra);}
+  .btn-copycat:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
+  .copycat-status{margin-top:14px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;min-height:20px;display:flex;align-items:center;gap:8px;}
+  .copycat-status.thinking{color:var(--gold);}
+  .copycat-status.error{color:#e74c3c;}
+  .copycat-status.success{color:#8BC34A;}
+  .copycat-spinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(232,160,32,.3);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .presets-section{background:rgba(255,255,255,.03);border:1px solid rgba(232,160,32,.25);padding:32px;margin-bottom:36px;position:relative;overflow:hidden;}
+  .presets-section::before{content:'BLENDS';position:absolute;right:-20px;top:50%;transform:translateY(-50%) rotate(90deg);font-family:'Playfair Display',serif;font-size:70px;font-weight:900;color:rgba(255,255,255,.025);pointer-events:none;letter-spacing:8px;}
+  .preset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:20px;}
+  .preset-card{cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);padding:18px 14px;text-align:center;transition:all .25s;position:relative;overflow:hidden;}
+  .preset-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--gold);transform:scaleX(0);transition:transform .25s;}
+  .preset-card:hover{background:rgba(232,160,32,.08);border-color:rgba(232,160,32,.4);}
+  .preset-card:hover::after{transform:scaleX(1);}
+  .preset-card.active{background:rgba(232,160,32,.12);border-color:var(--gold);}
+  .preset-card.active::after{transform:scaleX(1);}
+  .preset-icon{font-size:26px;display:block;margin-bottom:8px;}
+  .preset-name{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--gold);line-height:1.2;}
+  .preset-desc{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1px;color:var(--smoke);text-transform:uppercase;margin-top:5px;line-height:1.4;}
+
+  /* ── SALT SECTION ── */
+  .salt-section{background:rgba(255,255,255,.04);border:1px solid rgba(232,160,32,.2);border-radius:2px;padding:32px;margin-bottom:36px;position:relative;overflow:hidden;}
+  .salt-section::before{content:'SALT';position:absolute;right:-10px;top:50%;transform:translateY(-50%) rotate(90deg);font-family:'Playfair Display',serif;font-size:80px;font-weight:900;color:rgba(255,255,255,.03);pointer-events:none;}
+  .section-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:20px;display:flex;align-items:center;gap:10px;}
+  .section-label::after{content:'';flex:1;height:1px;background:rgba(232,160,32,.3);}
+  .salt-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .salt-tab{cursor:pointer;border:2px solid transparent;padding:20px 12px;text-align:center;transition:all .25s;background:rgba(255,255,255,.04);position:relative;overflow:hidden;}
+  .salt-tab::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:currentColor;transform:scaleX(0);transition:transform .25s;}
+  .salt-tab:hover::after,.salt-tab.active::after{transform:scaleX(1);}
+  .salt-tab[data-ratio="0"]{color:var(--salt-0);} .salt-tab[data-ratio="25"]{color:var(--salt-25);}
+  .salt-tab[data-ratio="50"]{color:var(--salt-50);} .salt-tab[data-ratio="75"]{color:var(--salt-75);}
+  .salt-tab.active{border-color:currentColor;background:rgba(255,255,255,.07);}
+  .salt-pct{font-family:'Playfair Display',serif;font-size:36px;font-weight:900;line-height:1;display:block;}
+  .salt-name{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;display:block;margin-top:6px;opacity:.7;}
+  .baja-note{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:#7fb3d3;margin-top:14px;display:flex;align-items:center;gap:8px;}
+  .baja-note::before{content:'';width:6px;height:6px;border-radius:50%;background:#2980B9;flex-shrink:0;}
+
+  /* ── WEIGHT ROW ── */
+  .weight-row{display:flex;align-items:center;gap:20px;margin-bottom:36px;flex-wrap:wrap;}
+  .weight-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--sand);white-space:nowrap;}
+  .weight-input-wrap{display:flex;align-items:stretch;}
+  .weight-input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-right:none;color:var(--cream);font-family:'Space Mono',monospace;font-size:22px;padding:10px 16px;width:120px;outline:none;transition:border-color .2s;}
+  .weight-input:focus{border-color:var(--gold);}
+  .weight-unit{background:rgba(232,160,32,.15);border:1px solid rgba(232,160,32,.3);color:var(--gold);font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;padding:10px 14px;display:flex;align-items:center;}
+  .unit-toggle{display:flex;margin-left:10px;border:1px solid rgba(232,160,32,.4);overflow:hidden;}
+  .unit-btn{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:10px 16px;border:none;cursor:pointer;background:rgba(255,255,255,.04);color:var(--sand);transition:all .2s;}
+  .unit-btn.active{background:var(--gold);color:var(--dark);font-weight:700;}
+  .unit-btn:hover:not(.active){background:rgba(232,160,32,.15);color:var(--gold);}
+
+  /* ── SPICES ── */
+  .spices-section{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);padding:32px;margin-bottom:36px;}
+  .spice-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:20px;}
+  .spice-item{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);padding:12px 16px;cursor:pointer;transition:all .2s;user-select:none;}
+  .spice-item:hover{background:rgba(255,255,255,.08);border-color:rgba(232,160,32,.3);}
+  .spice-item.selected{background:rgba(232,160,32,.1);border-color:var(--gold);}
+  .spice-item.selected .spice-check{opacity:1;}
+  .spice-name{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--cream);}
+  .spice-check{width:18px;height:18px;border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;opacity:.3;transition:opacity .2s;flex-shrink:0;font-size:10px;color:var(--gold);}
+
+  .custom-ratios{margin-top:20px;display:none;}
+  .custom-ratios.visible{display:block;}
+  .ratio-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;animation:fadeSlide .3s ease forwards;}
+  @keyframes fadeSlide{from{opacity:0;transform:translateX(-10px);}to{opacity:1;transform:translateX(0);}}
+  .ratio-name{font-family:'Libre Baskerville',serif;font-size:13px;color:var(--sand);min-width:160px;}
+  .ratio-slider{flex:1;-webkit-appearance:none;height:4px;background:rgba(255,255,255,.1);outline:none;cursor:pointer;}
+  .ratio-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:var(--gold);cursor:pointer;border-radius:0;border:2px solid var(--dark);}
+  .ratio-value{font-family:'Space Mono',monospace;font-size:12px;color:var(--gold);min-width:40px;text-align:right;}
+
+  /* ── RESULTS ── */
+  .results-card{background:linear-gradient(135deg,rgba(192,57,43,.15),rgba(26,10,0,.8));border:2px solid var(--chili);padding:36px;position:relative;overflow:hidden;margin-bottom:36px;}
+  .results-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--chili),var(--gold),var(--chili));}
+  .blend-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--gold);margin-bottom:6px;}
+  .blend-meta{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--sand);text-transform:uppercase;margin-bottom:28px;}
+  .blend-rows{display:flex;flex-direction:column;}
+  .blend-row{display:grid;grid-template-columns:1fr 80px 90px 90px;border-bottom:1px solid rgba(255,255,255,.06);}
+  .blend-row.header{border-bottom:1px solid rgba(232,160,32,.3);margin-bottom:4px;}
+  .blend-row>div{padding:10px 12px;font-family:'Space Mono',monospace;font-size:11px;}
+  .blend-row.header>div{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);opacity:.7;}
+  .ingredient-name{color:var(--cream);font-family:'Libre Baskerville',serif!important;font-size:13px!important;}
+  .ingredient-pct{color:var(--sand);text-align:right;}
+  .ingredient-g{color:var(--gold);font-weight:700;text-align:right;}
+  .ingredient-tsp{color:var(--smoke);text-align:right;font-size:10px!important;}
+  .salt-row{background:rgba(255,255,255,.04);}
+  .salt-row .ingredient-name{color:var(--sand);font-style:italic;}
+  .blend-total{display:grid;grid-template-columns:1fr 80px 90px 90px;padding:12px 12px;border-top:2px solid rgba(232,160,32,.4);margin-top:4px;}
+  .blend-total>div{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--gold);padding:0 12px;}
+  .empty-state{text-align:center;padding:40px;color:var(--smoke);font-family:'Libre Baskerville',serif;font-style:italic;}
+
+  .btn-row{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;}
+  .btn{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;padding:12px 24px;border:none;cursor:pointer;transition:all .2s;}
+  .btn-primary{background:var(--chili);color:var(--cream);}
+  .btn-primary:hover{background:#a93226;transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--terra);}
+  .btn-secondary{background:transparent;border:1px solid var(--gold);color:var(--gold);}
+  .btn-secondary:hover{background:rgba(232,160,32,.1);}
+  .btn-nutrition{background:var(--terra);color:var(--cream);}
+  .btn-nutrition:hover{background:#6a2d0b;transform:translate(-1px,-1px);box-shadow:2px 2px 0 #3a1806;}
+  .salt-warning{background:rgba(41,128,185,.15);border-left:3px solid #2980B9;padding:10px 16px;margin-top:12px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:#7fb3d3;display:none;}
+  .salt-warning.visible{display:block;}
+
+  /* ── HEAT INDICATOR ── */
+  .heat-bar-wrap{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding:14px 16px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.06);}
+  .heat-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--sand);white-space:nowrap;min-width:36px;}
+  .heat-track{flex:1;height:8px;background:rgba(255,255,255,.07);position:relative;overflow:hidden;}
+  .heat-fill{height:100%;transition:width .5s cubic-bezier(.34,1.2,.64,1),background .5s;width:0%;}
+  .heat-peppers{display:flex;gap:3px;font-size:14px;line-height:1;}
+  .heat-pepper{opacity:.2;transition:opacity .35s;}
+  .heat-pepper.lit{opacity:1;}
+  .heat-name{font-family:'Playfair Display',serif;font-size:13px;font-style:italic;min-width:68px;transition:color .3s;}
+
+  /* ══════════════════════════════════════════
+     NUTRITION MODAL
+  ══════════════════════════════════════════ */
+  .nf-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;}
+  .nf-overlay.open{display:flex;}
+  .nf-modal{background:#f8f5f0;max-width:380px;width:100%;max-height:92vh;overflow-y:auto;position:relative;box-shadow:0 40px 100px rgba(0,0,0,.8);animation:nfPop .3s cubic-bezier(.34,1.56,.64,1) forwards;}
+  @keyframes nfPop{from{transform:scale(.82) translateY(20px);opacity:0;}to{transform:scale(1) translateY(0);opacity:1;}}
+  .nf-topbar{background:#1A0A00;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;}
+  .nf-topbar-title{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);}
+  .nf-topbar-btns{display:flex;gap:8px;}
+  .nf-btn-print{background:var(--chili);color:white;border:none;padding:5px 12px;cursor:pointer;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;}
+  .nf-btn-print:hover{background:#a93226;}
+  .nf-btn-close{background:rgba(255,255,255,.1);color:white;border:none;width:28px;height:28px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+  .nf-btn-close:hover{background:rgba(255,255,255,.2);}
+  .nf-brand{text-align:center;padding:18px 12px 14px;background:white;border-bottom:6px solid #111;}
+  .nf-brand-logo{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:#C0392B;line-height:1;}
+  .nf-brand-tagline{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#888;margin-top:2px;}
+  .nf-brand-product{font-family:'Libre Baskerville',serif;font-size:13px;font-style:italic;color:#444;margin-top:6px;}
+  .nf-batch-pills{display:flex;justify-content:center;gap:8px;margin-top:8px;flex-wrap:wrap;}
+  .nf-pill{background:#f0e8d8;border:1px solid #d4b896;font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1px;color:#8B3A0F;padding:3px 8px;}
+  .nf-pill.baja{background:#e8f0f8;border-color:#7fb3d3;color:#2980B9;}
+  .nf-panel-wrap{padding:12px;background:white;}
+  .nf-panel{border:2px solid #111;padding:6px 6px 0;font-family:'Franklin Gothic Medium','Arial Narrow',Arial,sans-serif;color:#000;}
+  .nf-h1{font-size:38px;font-weight:900;letter-spacing:-1px;line-height:1;}
+  .nf-serving-size{font-size:11px;font-weight:bold;margin:4px 0 1px;}
+  .nf-servings-per{font-size:10px;margin-bottom:3px;}
+  .nf-cal-block{display:flex;justify-content:space-between;align-items:baseline;border-top:7px solid #111;border-bottom:4px solid #111;padding:3px 0;}
+  .nf-cal-left{display:flex;flex-direction:column;}
+  .nf-cal-label{font-size:13px;font-weight:bold;}
+  .nf-cal-num{font-size:44px;font-weight:900;line-height:1;}
+  .nf-dv-hdr{font-size:8px;text-align:right;margin:1px 0 2px;color:#444;}
+  .nfr{display:flex;justify-content:space-between;align-items:baseline;border-bottom:.5px solid #bbb;padding:2px 0;font-size:10px;}
+  .nfr.thick{border-bottom:4px solid #111;}
+  .nfr.med{border-bottom:2px solid #111;}
+  .nfr-l{font-weight:bold;}
+  .nfr-l span{font-weight:normal;}
+  .nfr-ind{padding-left:14px;font-weight:normal;}
+  .nfr-ind2{padding-left:26px;font-weight:normal;}
+  .nfr-dv{font-weight:bold;min-width:38px;text-align:right;font-size:10px;}
+  .nf-footer{font-size:7.5px;line-height:1.5;padding:4px 0 6px;border-top:4px solid #111;margin-top:3px;color:#333;}
+  .nf-ing-block{background:white;padding:10px 12px;border-top:3px solid #111;margin:0 12px;}
+  .nf-ing-title{font-family:'Franklin Gothic Medium',Arial,sans-serif;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;color:#111;}
+  .nf-ing-list{font-family:'Franklin Gothic Medium',Arial,sans-serif;font-size:9px;line-height:1.7;color:#222;}
+  .nf-baja-block{background:#e8f4fb;border:1px solid #7fb3d3;padding:8px 12px;margin:0 12px 0;display:flex;align-items:flex-start;gap:8px;}
+  .nf-baja-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+  .nf-baja-text{font-family:'Franklin Gothic Medium',Arial,sans-serif;font-size:8.5px;line-height:1.5;color:#1a5276;}
+  .nf-disclaimer{font-size:7px;color:#777;padding:6px 12px 12px;font-family:Arial,sans-serif;line-height:1.5;border-top:1px solid #ddd;margin:0 12px;}
+
+  @media print{
+    /* ── Nutrition modal open: print only the modal ── */
+    .nf-overlay.open ~ * { visibility: hidden !important; }
+    .nf-overlay.open { display:flex!important; position:fixed!important; inset:0!important; background:white!important; }
+    .nf-overlay.open *{ visibility:visible!important; }
+    .nf-overlay.open .nf-topbar,
+    .nf-overlay.open .nf-btn-close,
+    .nf-overlay.open .nf-btn-print{ display:none!important; }
+    .nf-overlay.open .nf-modal{ box-shadow:none!important; max-height:none!important; overflow:visible!important; }
+
+    /* ── No modal: print the main page ── */
+    body{ background:white!important; color:#1A0A00!important; }
+    body::before{ display:none!important; }
+    .nf-overlay:not(.open){ display:none!important; }
+    header .logo-band{ background:#C0392B!important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    h1{ color:#C0392B!important; text-shadow:none!important; }
+    h1 em{ color:#555!important; }
+    .presets-section, .salt-section, .spices-section, .weight-row,
+    .divider, .subtitle, .baja-badge{ display:none!important; }
+    .results-card{
+      background:white!important; border:2px solid #C0392B!important;
+      box-shadow:none!important; color:#1A0A00!important;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    }
+    .results-card::before{ background:#C0392B!important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .blend-title{ color:#C0392B!important; }
+    .blend-meta{ color:#555!important; }
+    .ingredient-name{ color:#1A0A00!important; }
+    .ingredient-pct{ color:#555!important; }
+    .ingredient-g{ color:#C0392B!important; }
+    .ingredient-tsp{ color:#777!important; }
+    .blend-row{ border-bottom:1px solid #ddd!important; }
+    .blend-row.header > div{ color:#C0392B!important; opacity:1!important; }
+    .blend-total > div{ color:#C0392B!important; }
+    .salt-row .ingredient-name{ color:#555!important; }
+    .heat-bar-wrap{ background:#f5f5f5!important; border:1px solid #ddd!important; }
+    .heat-label{ color:#555!important; }
+    .heat-track{ background:#eee!important; }
+    .heat-fill{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .btn-row{ display:none!important; }
+    .salt-warning{ display:none!important; }
+    .empty-state{ color:#555!important; }
+    footer, [style*="padding:40px 0 60px"]{ display:none!important; }
+  }
+  @media(max-width:600px){
+    .salt-tabs{grid-template-columns:repeat(2,1fr);}
+    .preset-grid{grid-template-columns:repeat(2,1fr);}
+    .blend-row{grid-template-columns:1fr 60px 70px;}
+    .blend-row>div:last-child,.blend-total>div:last-child{display:none;}
+    .blend-total{grid-template-columns:1fr 60px 70px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="logo-band"><span>Est. Cocina Auténtica</span></div>
+    <h1>Don Cuco's<em>Seasoning Blend Builder</em></h1>
+    <p class="subtitle">Craft your perfect blend — from scratch</p>
+    <div class="baja-badge">
+      <span class="baja-dot"></span>
+      Crafted with Baja Gold Mineral Salt
+    </div>
+  </header>
+
+  <div class="divider">
+    <div class="divider-line"></div><div class="divider-icon">✦</div><div class="divider-line"></div>
+  </div>
+
+  <!-- ── COPYCAT ── -->
+  <div class="copycat-section">
+    <div class="section-label">🐱 CopyCat Blend</div>
+    <p style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--smoke);text-transform:uppercase;">Enter any seasoning blend name and we'll reverse-engineer it</p>
+    <div class="copycat-input-row">
+      <input class="copycat-input" id="copycatInput" type="text" placeholder="e.g. Old Bay, Tajín, Everything Bagel, Ras el Hanout…" onkeydown="if(event.key==='Enter')runCopycat()">
+      <button class="btn-copycat" id="copycatBtn" onclick="runCopycat()">🐱 Reproduce It</button>
+    </div>
+    <div class="copycat-status" id="copycatStatus"></div>
+  </div>
+
+  <!-- ── POPULAR BLENDS ── -->
+  <div class="presets-section">
+    <div class="section-label">Popular Blends</div>
+    <p style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--smoke);text-transform:uppercase;">Start with a classic — then customize to your taste</p>
+    <div class="preset-grid" id="presetGrid"></div>
+  </div>
+
+  <!-- ── SALT RATIO ── -->
+  <div class="salt-section">
+    <div class="section-label">Baja Gold Salt Ratio</div>
+    <div class="salt-tabs">
+      <div class="salt-tab active" data-ratio="0" onclick="setSalt(0)"><span class="salt-pct">0%</span><span class="salt-name">No Salt</span></div>
+      <div class="salt-tab" data-ratio="25" onclick="setSalt(25)"><span class="salt-pct">25%</span><span class="salt-name">Low Salt</span></div>
+      <div class="salt-tab" data-ratio="50" onclick="setSalt(50)"><span class="salt-pct">50%</span><span class="salt-name">Half Salt</span></div>
+      <div class="salt-tab" data-ratio="75" onclick="setSalt(75)"><span class="salt-pct">75%</span><span class="salt-name">Full Flavor</span></div>
+    </div>
+    <div class="baja-note">Baja Gold Mineral Salt — rich in trace minerals, lower in sodium chloride than standard table salt</div>
+    <div class="salt-warning" id="saltWarning">⚠ At 75% Baja Gold Salt ratio, salt will dominate the blend. Consider your recipe's sodium needs.</div>
+  </div>
+
+  <!-- ── WEIGHT ── -->
+  <div class="weight-row">
+    <div class="weight-label">Total Batch Weight</div>
+    <div class="weight-input-wrap">
+      <input type="number" class="weight-input" id="totalWeight" value="4" min="0.01" max="9999" step="0.01" oninput="renderBlend()">
+      <div class="weight-unit" id="weightUnitLabel">OZ</div>
+    </div>
+    <div class="unit-toggle">
+      <button class="unit-btn" id="btnG" onclick="setUnit('g')">Grams</button>
+      <button class="unit-btn active" id="btnOz" onclick="setUnit('oz')">Oz</button>
+    </div>
+  </div>
+
+  <!-- ── SPICE GRID ── -->
+  <div class="spices-section">
+    <div class="section-label">Select Your Spices</div>
+    <div class="spice-grid" id="spiceGrid"></div>
+    <div class="custom-ratios" id="customRatios">
+      <div class="divider" style="margin:24px 0 16px">
+        <div class="divider-line"></div>
+        <div class="divider-icon" style="font-size:14px;color:var(--sand)">Spice Proportions</div>
+        <div class="divider-line"></div>
+      </div>
+      <p style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--smoke);text-transform:uppercase;margin-bottom:14px">Adjust relative proportions (auto-normalizes to 100% of spice portion)</p>
+      <div id="sliderContainer"></div>
+    </div>
+  </div>
+
+  <!-- ── RESULTS ── -->
+  <div class="results-card">
+    <div class="blend-title" id="blendTitle">Your Blend</div>
+    <div class="blend-meta" id="blendMeta">Select a popular blend or choose spices above</div>
+    <div class="heat-bar-wrap" id="heatBarWrap" style="display:none">
+      <div class="heat-label">Heat</div>
+      <div class="heat-track"><div class="heat-fill" id="heatFill"></div></div>
+      <div class="heat-peppers" id="heatPeppers">
+        <span class="heat-pepper" id="hp1">🌶️</span>
+        <span class="heat-pepper" id="hp2">🌶️</span>
+        <span class="heat-pepper" id="hp3">🌶️</span>
+        <span class="heat-pepper" id="hp4">🌶️</span>
+        <span class="heat-pepper" id="hp5">🌶️</span>
+      </div>
+      <div class="heat-name" id="heatName">Mild</div>
+    </div>
+    <div id="blendOutput"><div class="empty-state">Choose a popular blend or select spices to get started.</div></div>
+    <div class="btn-row">
+      <button class="btn btn-nutrition" id="btnNutrition" onclick="openNutrition()" style="display:none">🥄 Nutrition Facts</button>
+      <button class="btn btn-primary" onclick="copyBlend()">⎘ Copy to Clipboard</button>
+      <button class="btn btn-secondary" onclick="window.print()">⎙ Print Recipe</button>
+      <button class="btn btn-secondary" onclick="resetAll()">↺ Reset</button>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:40px 0 60px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--smoke);text-transform:uppercase;">
+    Don Cuco's Seasoning Blend Builder &nbsp;✦&nbsp; Crafted with Baja Gold Mineral Salt
+  </div>
+</div>
+
+<!-- ── NUTRITION MODAL ── -->
+<div class="nf-overlay" id="nfOverlay" onclick="overlayClick(event)">
+  <div class="nf-modal" id="nfModal">
+    <div class="nf-topbar">
+      <div class="nf-topbar-title">Nutrition Facts Label</div>
+      <div class="nf-topbar-btns">
+        <button class="nf-btn-print" onclick="window.print()">⎙ Print</button>
+        <button class="nf-btn-close" onclick="closeNutrition()">✕</button>
+      </div>
+    </div>
+    <div id="nfContent"></div>
+  </div>
+</div>
+
+<script>
+// ── POPULAR BLENDS ────────────────────────────────────────────────────────────
+const POPULAR_BLENDS = [
+  {
+    id:'lemon-pepper', name:'Lemon Pepper', icon:'🍋', saltRatio:25,
+    desc:'Bright citrus · cracked pepper',
+    spices:{'Lemon Zest':30,'Black Pepper':30,'White Pepper':10,'Garlic Powder':15,'Onion Powder':10,'Thyme':5}
+  },
+  {
+    id:'all-purpose', name:'All Purpose', icon:'⭐', saltRatio:50,
+    desc:'Everyday go-to · versatile',
+    spices:{'Garlic Powder':20,'Onion Powder':15,'Smoked Paprika':12,'Black Pepper':12,'Cumin':10,'Oregano (Mexican)':8,'Thyme':8,'Mustard Powder':8,'Cayenne Pepper':7}
+  },
+  {
+    id:'burger', name:'Burger Blend', icon:'🍔', saltRatio:50,
+    desc:'Bold savory · smoky depth',
+    spices:{'Smoked Paprika':22,'Black Pepper':18,'Garlic Powder':18,'Onion Powder':15,'Mustard Powder':12,'Cayenne Pepper':8,'Cumin':7}
+  },
+  {
+    id:'steak', name:'Steak Blend', icon:'🥩', saltRatio:50,
+    desc:'Robust · peppery · umami',
+    spices:{'Black Pepper':30,'Garlic Powder':20,'Smoked Paprika':15,'Onion Powder':12,'Rosemary':10,'Thyme':8,'Mustard Powder':5}
+  },
+  {
+    id:'taco', name:'Taco Seasoning', icon:'🌮', saltRatio:25,
+    desc:'Classic Mexican · smoky heat',
+    spices:{'Chili Powder':25,'Cumin':20,'Smoked Paprika':12,'Garlic Powder':12,'Onion Powder':10,'Oregano (Mexican)':8,'Cayenne Pepper':7,'Coriander':6}
+  },
+  {
+    id:'seafood', name:'Seafood Blend', icon:'🦐', saltRatio:25,
+    desc:'Bright citrus · herbaceous · coastal',
+    spices:{'Lemon Zest':25,'Garlic Powder':20,'White Pepper':15,'Thyme':12,'Coriander':10,'Paprika':10,'Citric Acid':8}
+  },
+  {
+    id:'korean', name:'Korean Blend', icon:'🌶️', saltRatio:25,
+    desc:'Gochugaru heat · sesame · ginger',
+    spices:{'Cayenne Pepper':25,'Smoked Paprika':20,'Ginger':15,'Garlic Powder':15,'Onion Powder':10,'Black Pepper':8,'Coriander':7}
+  },
+  {
+    id:'smokey', name:'Smoky Blend', icon:'🔥', saltRatio:50,
+    desc:'Deep smoke · chipotle · dark spice',
+    spices:{'Smoked Paprika':30,'Chipotle Powder':20,'Ancho Powder':15,'Garlic Powder':12,'Black Pepper':10,'Cumin':8,'Cayenne Pepper':5}
+  },
+  {
+    id:'chicken', name:'Chicken Blend', icon:'🍗', saltRatio:50,
+    desc:'Savory herbs · golden · aromatic',
+    spices:{'Garlic Powder':20,'Paprika':18,'Onion Powder':15,'Thyme':12,'Marjoram':10,'Black Pepper':10,'Mustard Powder':8,'Turmeric':7}
+  },
+  {
+    id:'chorizo', name:'Chorizo', icon:'🌶️', saltRatio:25,
+    desc:'Bold Mexican · earthy chile · vinegar tang',
+    spices:{'Ancho Powder':25,'Guajillo Powder':20,'Smoked Paprika':15,'Garlic Powder':12,'Cumin':10,'Oregano (Mexican)':8,'Coriander':5,'Citric Acid':5}
+  },
+  {
+    id:'birria', name:'Birria', icon:'🫕', saltRatio:25,
+    desc:'Deep red chile · warm spice · slow-braise',
+    spices:{'Ancho Powder':22,'Pasilla Powder':18,'Chipotle Powder':12,'Cumin':12,'Garlic Powder':10,'Oregano (Mexican)':8,'Coriander':6,'Cinnamon':5,'Clove':4,'Ginger':3}
+  },
+  {
+    id:'pozole', name:'Pozole / Mendo', icon:'🍲', saltRatio:25,
+    desc:'Earthy red chile · oregano · hominy soul',
+    spices:{'Ancho Powder':28,'Pasilla Powder':18,'Guajillo Powder':16,'Oregano (Mexican)':12,'Garlic Powder':10,'Cumin':8,'Coriander':5,'Bay Leaf (ground)':3}
+  },
+];
+
+// ── SPICES DATA ───────────────────────────────────────────────────────────────
+// Nutrition per 1g
+const NUTRITION = {
+  'Chili Powder':      {cal:3.28,fat:.16,satFat:.03,sodium:1.6, carb:.58,fiber:.27,sugar:.08,protein:.13,iron:.11},
+  'Cumin':             {cal:3.75,fat:.22,satFat:.02,sodium:1.8, carb:.44,fiber:.11,sugar:.03,protein:.18,iron:.34},
+  'Garlic Powder':     {cal:3.31,fat:.01,satFat:.00,sodium:1.8, carb:.73,fiber:.09,sugar:.03,protein:.16,iron:.07},
+  'Onion Powder':      {cal:3.45,fat:.01,satFat:.00,sodium:3.5, carb:.79,fiber:.09,sugar:.28,protein:.12,iron:.04},
+  'Smoked Paprika':    {cal:2.82,fat:.13,satFat:.02,sodium:1.6, carb:.54,fiber:.34,sugar:.10,protein:.14,iron:.18},
+  'Black Pepper':      {cal:2.55,fat:.03,satFat:.01,sodium:.4,  carb:.64,fiber:.26,sugar:.01,protein:.11,iron:.11},
+  'Oregano (Mexican)': {cal:2.65,fat:.04,satFat:.02,sodium:.4,  carb:.69,fiber:.43,sugar:.00,protein:.09,iron:.35},
+  'Cayenne Pepper':    {cal:3.18,fat:.17,satFat:.03,sodium:.5,  carb:.57,fiber:.27,sugar:.10,protein:.12,iron:.07},
+  'Coriander':         {cal:2.98,fat:.18,satFat:.01,sodium:.6,  carb:.55,fiber:.41,sugar:.01,protein:.12,iron:.09},
+  'Chipotle Powder':   {cal:3.28,fat:.16,satFat:.03,sodium:2.8, carb:.58,fiber:.27,sugar:.08,protein:.13,iron:.11},
+  'White Pepper':      {cal:2.96,fat:.03,satFat:.01,sodium:.1,  carb:.70,fiber:.26,sugar:.01,protein:.11,iron:.09},
+  'Ancho Powder':      {cal:2.82,fat:.13,satFat:.02,sodium:1.6, carb:.54,fiber:.34,sugar:.10,protein:.14,iron:.18},
+  'Turmeric':          {cal:3.54,fat:.10,satFat:.03,sodium:.8,  carb:.64,fiber:.21,sugar:.03,protein:.08,iron:.36},
+  'Thyme':             {cal:2.76,fat:.07,satFat:.02,sodium:.9,  carb:.64,fiber:.39,sugar:.01,protein:.16,iron:.52},
+  'Marjoram':          {cal:2.71,fat:.07,satFat:.02,sodium:.8,  carb:.60,fiber:.40,sugar:.00,protein:.13,iron:.49},
+  'Red Pepper Flakes': {cal:3.18,fat:.17,satFat:.03,sodium:.5,  carb:.57,fiber:.27,sugar:.10,protein:.12,iron:.07},
+  'Mustard Powder':    {cal:4.08,fat:.21,satFat:.01,sodium:.5,  carb:.28,fiber:.10,sugar:.04,protein:.27,iron:.18},
+  'Allspice':          {cal:2.63,fat:.09,satFat:.03,sodium:.5,  carb:.72,fiber:.21,sugar:.00,protein:.06,iron:.05},
+  'Clove':             {cal:2.74,fat:.13,satFat:.04,sodium:.5,  carb:.65,fiber:.33,sugar:.03,protein:.06,iron:.13},
+  'Cinnamon':          {cal:2.47,fat:.03,satFat:.01,sodium:.6,  carb:.81,fiber:.53,sugar:.06,protein:.04,iron:.09},
+  'Bay Leaf (ground)': {cal:2.95,fat:.07,satFat:.02,sodium:.8,  carb:.67,fiber:.26,sugar:.00,protein:.07,iron:.25},
+  'Epazote':           {cal:.32, fat:.01,satFat:.00,sodium:.4,  carb:.06,fiber:.02,sugar:.00,protein:.02,iron:.07},
+  'Pasilla Powder':    {cal:2.82,fat:.13,satFat:.02,sodium:1.6, carb:.54,fiber:.34,sugar:.10,protein:.14,iron:.18},
+  'Ginger':            {cal:3.35,fat:.04,satFat:.01,sodium:.9,  carb:.72,fiber:.09,sugar:.07,protein:.09,iron:.09},
+  'Lemon Zest':        {cal:0.47,fat:.01,satFat:.00,sodium:.2,  carb:.16,fiber:.04,sugar:.03,protein:.01,iron:.01},
+  'Rosemary':          {cal:3.31,fat:.15,satFat:.07,sodium:2.6, carb:.64,fiber:.43,sugar:.00,protein:.08,iron:.57},
+  'Paprika':           {cal:2.82,fat:.13,satFat:.02,sodium:1.6, carb:.54,fiber:.34,sugar:.10,protein:.14,iron:.18},
+  'Guajillo Powder':   {cal:2.82,fat:.13,satFat:.02,sodium:1.6, carb:.54,fiber:.34,sugar:.10,protein:.14,iron:.18},
+  'Citric Acid':       {cal:0.00,fat:.00,satFat:.00,sodium:.0,  carb:.00,fiber:.00,sugar:.00,protein:.00,iron:.00},
+  'Crushed Red Peppers':{cal:3.18,fat:.17,satFat:.03,sodium:.5, carb:.57,fiber:.27,sugar:.10,protein:.12,iron:.07},
+  // Baja Gold Salt — lower sodium than table salt (~84% NaCl, trace minerals)
+  'Baja Gold Salt':    {cal:0.00,fat:.00,satFat:.00,sodium:326.0,carb:.00,fiber:.00,sugar:.00,protein:.00,iron:.01},
+};
+
+const TSP_PER_G = {
+  'Chili Powder':.47,'Cumin':.53,'Garlic Powder':.43,'Onion Powder':.40,
+  'Smoked Paprika':.48,'Black Pepper':.46,'Oregano (Mexican)':.63,'Cayenne Pepper':.45,
+  'Coriander':.54,'Chipotle Powder':.47,'White Pepper':.46,'Ancho Powder':.47,
+  'Turmeric':.42,'Thyme':.70,'Marjoram':.74,'Red Pepper Flakes':.62,
+  'Mustard Powder':.48,'Allspice':.46,'Clove':.42,'Cinnamon':.43,
+  'Bay Leaf (ground)':.55,'Epazote':.65,'Pasilla Powder':.47,'Ginger':.45,
+  'Lemon Zest':.60,'Rosemary':.67,'Paprika':.48,'Guajillo Powder':.47,'Citric Acid':.38,'Crushed Red Peppers':.55,'Baja Gold Salt':.35
+};
+
+// Heat units = 0–10 per spice (contribution score, not raw Scoville)
+const HEAT_LEVEL = {
+  'Cayenne Pepper':10,'Red Pepper Flakes':9,'Crushed Red Peppers':9,'Chipotle Powder':7,'Chili Powder':5,
+  'Ancho Powder':4,'Pasilla Powder':4,'Guajillo Powder':4,'Black Pepper':3,
+  'White Pepper':3,'Smoked Paprika':2,'Paprika':1,'Ginger':2,'Mustard Powder':2,
+  'Cumin':1,'Coriander':1,'Clove':1,'Allspice':1,
+};
+
+const HEAT_NAMES = [
+  {min:0,  name:'No Heat',  color:'#7fb3d3'},
+  {min:1,  name:'Mild',     color:'#8BC34A'},
+  {min:10, name:'Medium',   color:'#E8A020'},
+  {min:22, name:'Bold',     color:'#E67E22'},
+  {min:35, name:'Hot',      color:'#C0392B'},
+  {min:55, name:'Fiery',    color:'#8B0000'},
+];
+
+const SPICES = [
+  {name:'Chili Powder',default:20},{name:'Cumin',default:15},{name:'Garlic Powder',default:12},
+  {name:'Onion Powder',default:10},{name:'Smoked Paprika',default:10},{name:'Black Pepper',default:8},
+  {name:'Oregano (Mexican)',default:8},{name:'Cayenne Pepper',default:5},{name:'Coriander',default:5},
+  {name:'Chipotle Powder',default:5},{name:'White Pepper',default:4},{name:'Ancho Powder',default:6},
+  {name:'Turmeric',default:3},{name:'Thyme',default:3},{name:'Marjoram',default:3},
+  {name:'Red Pepper Flakes',default:4},{name:'Mustard Powder',default:3},{name:'Allspice',default:2},
+  {name:'Clove',default:1},{name:'Cinnamon',default:2},{name:'Bay Leaf (ground)',default:2},
+  {name:'Epazote',default:3},{name:'Pasilla Powder',default:5},{name:'Ginger',default:2},
+  {name:'Lemon Zest',default:15},{name:'Rosemary',default:8},
+  {name:'Paprika',default:10},{name:'Guajillo Powder',default:6},{name:'Citric Acid',default:3},
+  {name:'Crushed Red Peppers',default:4},
+];
+
+let saltRatio=0, selected=new Set(), sliderValues={}, unitMode='oz', activePreset=null;
+const G_PER_OZ=28.3495;
+
+// ── PRESET CARDS ──────────────────────────────────────────────────────────────
+function buildPresets() {
+  const grid = document.getElementById('presetGrid');
+  POPULAR_BLENDS.forEach(b => {
+    const card = document.createElement('div');
+    card.className = 'preset-card';
+    card.id = 'preset_' + b.id;
+    card.innerHTML = `<span class="preset-icon">${b.icon}</span><div class="preset-name">${b.name}</div><div class="preset-desc">${b.desc}</div>`;
+    card.onclick = () => applyPreset(b);
+    grid.appendChild(card);
+  });
+}
+
+function applyPreset(blend) {
+  // Clear current selection
+  selected.clear();
+  document.querySelectorAll('.spice-item').forEach(el => el.classList.remove('selected'));
+
+  // Set salt
+  setSalt(blend.saltRatio);
+
+  // Apply spice ratios
+  Object.entries(blend.spices).forEach(([name, val]) => {
+    selected.add(name);
+    sliderValues[name] = val;
+    const el = [...document.querySelectorAll('.spice-item')].find(el => el.querySelector('.spice-name').textContent === name);
+    if (el) el.classList.add('selected');
+  });
+
+  // Highlight active preset
+  document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('preset_' + blend.id).classList.add('active');
+  activePreset = blend.id;
+
+  updateSliders();
+  renderBlend();
+  // Scroll to results
+  setTimeout(() => document.querySelector('.results-card').scrollIntoView({behavior:'smooth',block:'start'}), 100);
+}
+
+// ── UNIT TOGGLE ───────────────────────────────────────────────────────────────
+function setUnit(mode) {
+  const input = document.getElementById('totalWeight');
+  const cur = parseFloat(input.value)||0;
+  if (mode===unitMode) return;
+  if (mode==='oz') { input.value=(cur/G_PER_OZ).toFixed(2); input.step='.01'; }
+  else             { input.value=Math.round(cur*G_PER_OZ);   input.step='.1';  }
+  unitMode=mode;
+  document.getElementById('weightUnitLabel').textContent=mode==='g'?'G':'OZ';
+  document.getElementById('btnG').classList.toggle('active',mode==='g');
+  document.getElementById('btnOz').classList.toggle('active',mode==='oz');
+  renderBlend();
+}
+function getTotalWeightG(){const v=parseFloat(document.getElementById('totalWeight').value)||0;return unitMode==='oz'?v*G_PER_OZ:v;}
+function fmtWeight(g,d){return unitMode==='oz'?(g/G_PER_OZ).toFixed(d??2)+' oz':g.toFixed(d??1)+'g';}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function getIngredients(){
+  const tw=getTotalWeightG(), saltG=tw*(saltRatio/100);
+  let tot=0; selected.forEach(n=>tot+=sliderValues[n]);
+  const list=[];
+  selected.forEach(name=>{
+    const pct=tot>0?(sliderValues[name]/tot)*(100-saltRatio):0;
+    list.push({name,g:(pct/100)*tw,pct});
+  });
+  if(saltRatio>0) list.push({name:'Baja Gold Salt',g:saltG,pct:saltRatio});
+  return {list,tw};
+}
+function dv(val,ref){const p=Math.round((val/ref)*100);return(p<1?'<1':p)+'%';}
+
+// ── SALT TABS ─────────────────────────────────────────────────────────────────
+function setSalt(pct){
+  saltRatio=pct;
+  document.querySelectorAll('.salt-tab').forEach(t=>t.classList.toggle('active',parseInt(t.dataset.ratio)===pct));
+  document.getElementById('saltWarning').classList.toggle('visible',pct===75);
+  renderBlend();
+}
+
+// ── SPICE GRID ────────────────────────────────────────────────────────────────
+function buildSpiceGrid(){
+  const grid=document.getElementById('spiceGrid');
+  SPICES.forEach(s=>{
+    const el=document.createElement('div');
+    el.className='spice-item';
+    el.innerHTML=`<span class="spice-name">${s.name}</span><div class="spice-check">✓</div>`;
+    el.onclick=()=>toggleSpice(s.name,el);
+    grid.appendChild(el);
+    sliderValues[s.name]=s.default;
+  });
+}
+
+function toggleSpice(name,el){
+  selected.has(name)?(selected.delete(name),el.classList.remove('selected')):(selected.add(name),el.classList.add('selected'));
+  // Deactivate preset if user manually changes spices
+  document.querySelectorAll('.preset-card').forEach(c=>c.classList.remove('active'));
+  activePreset=null;
+  updateSliders(); renderBlend();
+}
+
+function updateSliders(){
+  const c=document.getElementById('sliderContainer'),r=document.getElementById('customRatios');
+  if(!selected.size){r.classList.remove('visible');return;}
+  r.classList.add('visible'); c.innerHTML='';
+  selected.forEach(name=>{
+    const row=document.createElement('div');
+    row.className='ratio-row';
+    row.innerHTML=`<div class="ratio-name">${name}</div>
+      <input type="range" class="ratio-slider" min="1" max="100" value="${sliderValues[name]}"
+        oninput="updateSliderVal('${name}',this.value)">
+      <div class="ratio-value" id="rv_${name.replace(/\W/g,'_')}">${sliderValues[name]}</div>`;
+    c.appendChild(row);
+  });
+}
+
+function updateSliderVal(name,val){
+  sliderValues[name]=parseInt(val);
+  document.getElementById('rv_'+name.replace(/\W/g,'_')).textContent=val;
+  renderBlend();
+}
+
+// ── HEAT INDICATOR ────────────────────────────────────────────────────────────
+function renderHeat(){
+  const wrap=document.getElementById('heatBarWrap');
+  if(!selected.size){wrap.style.display='none';return;}
+  wrap.style.display='flex';
+
+  // Weighted heat score: sum(heat_level * proportion) across selected spices
+  let tot=0; selected.forEach(n=>tot+=sliderValues[n]);
+  let score=0;
+  selected.forEach(name=>{
+    const pct=tot>0?(sliderValues[name]/tot)*(100-saltRatio):0;
+    score+=(HEAT_LEVEL[name]||0)*(pct/100);
+  });
+  // score is 0–10 scale (weighted avg of 0-10 ratings, scaled by proportion)
+  const pct=Math.min(score*10,100);
+
+  // Pick label + color
+  let tier=HEAT_NAMES[0];
+  HEAT_NAMES.forEach(h=>{if(score*10>=h.min)tier=h;});
+
+  document.getElementById('heatFill').style.width=pct+'%';
+  document.getElementById('heatFill').style.background=`linear-gradient(90deg,${tier.color}99,${tier.color})`;
+  document.getElementById('heatName').textContent=tier.name;
+  document.getElementById('heatName').style.color=tier.color;
+
+  // Light peppers (1 per 20 pct)
+  for(let i=1;i<=5;i++){
+    document.getElementById('hp'+i).classList.toggle('lit', pct>=(i*20)-19);
+  }
+}
+
+// ── RENDER BLEND ──────────────────────────────────────────────────────────────
+function renderBlend(){
+  const tw=getTotalWeightG();
+  const out=document.getElementById('blendOutput');
+  const btnN=document.getElementById('btnNutrition');
+
+  if(!selected.size){
+    out.innerHTML='<div class="empty-state">Choose a popular blend or select spices above to build your blend.</div>';
+    document.getElementById('blendTitle').textContent='Your Blend';
+    document.getElementById('blendMeta').textContent='Select a popular blend or choose spices above';
+    btnN.style.display='none'; renderHeat(); return;
+  }
+
+  const saltG=tw*(saltRatio/100);
+  let tot=0; selected.forEach(n=>tot+=sliderValues[n]);
+  const saltNames={0:'No Salt',25:'Low Salt (25%)',50:'Half Salt (50%)',75:'Full Flavor (75%)'};
+  const batchDisplay=fmtWeight(tw);
+
+  // Find preset name if active
+  const presetBlend = POPULAR_BLENDS.find(b=>b.id===activePreset);
+  const titleText = presetBlend ? `Don Cuco's ${presetBlend.name}` : "Don Cuco's Custom Blend";
+  document.getElementById('blendTitle').textContent=titleText;
+  document.getElementById('blendMeta').textContent=`${saltNames[saltRatio]} · Baja Gold Salt · ${batchDisplay} batch · ${selected.size} spice${selected.size>1?'s':''}`;
+  btnN.style.display='inline-block';
+
+  let rows=`<div class="blend-rows">
+    <div class="blend-row header">
+      <div>Ingredient</div><div style="text-align:right">%</div>
+      <div style="text-align:right">${unitMode==='oz'?'Ounces':'Grams'}</div><div style="text-align:right">Tsp (approx)</div>
+    </div>`;
+
+  selected.forEach(name=>{
+    const pct=tot>0?(sliderValues[name]/tot)*(100-saltRatio):0;
+    const g=(pct/100)*tw;
+    rows+=`<div class="blend-row">
+      <div class="ingredient-name">${name}</div>
+      <div class="ingredient-pct">${pct.toFixed(1)}%</div>
+      <div class="ingredient-g">${fmtWeight(g)}</div>
+      <div class="ingredient-tsp">${(g*(TSP_PER_G[name]||.45)).toFixed(2)} tsp</div>
+    </div>`;
+  });
+
+  if(saltRatio>0) rows+=`<div class="blend-row salt-row">
+    <div class="ingredient-name">Baja Gold Salt ✦</div>
+    <div class="ingredient-pct">${saltRatio}%</div>
+    <div class="ingredient-g">${fmtWeight(saltG)}</div>
+    <div class="ingredient-tsp">${(saltG*(TSP_PER_G['Baja Gold Salt']||.35)).toFixed(2)} tsp</div>
+  </div>`;
+
+  rows+=`</div><div class="blend-total">
+    <div>TOTAL</div><div>100%</div><div>${fmtWeight(tw)}</div><div></div>
+  </div>`;
+  out.innerHTML=rows;
+  renderHeat();
+}
+
+// ── NUTRITION MODAL ───────────────────────────────────────────────────────────
+function openNutrition(){
+  const {list,tw}=getIngredients();
+  if(!list.length) return;
+
+  const SERVING_G=2.8;
+  const servings=Math.max(1,Math.round(tw/SERVING_G));
+  const sc=SERVING_G/tw;
+
+  let T={cal:0,fat:0,satFat:0,sodium:0,carb:0,fiber:0,sugar:0,protein:0,iron:0};
+  list.forEach(({name,g})=>{
+    const n=NUTRITION[name]||{};
+    T.cal+=(n.cal||0)*g; T.fat+=(n.fat||0)*g; T.satFat+=(n.satFat||0)*g;
+    T.sodium+=(n.sodium||0)*g; T.carb+=(n.carb||0)*g; T.fiber+=(n.fiber||0)*g;
+    T.sugar+=(n.sugar||0)*g; T.protein+=(n.protein||0)*g; T.iron+=(n.iron||0)*g;
+  });
+  const s={}; Object.keys(T).forEach(k=>s[k]=T[k]*sc);
+
+  const sorted=[...list].sort((a,b)=>b.g-a.g);
+  // In ingredients list, show "Baja Gold Salt" properly
+  const ingList=sorted.map(i=>i.name.toUpperCase()).join(', ')+'.';
+  const saltLabel={0:'No Salt Added',25:'25% Baja Gold Salt',50:'50% Baja Gold Salt',75:'75% Baja Gold Salt'}[saltRatio];
+  const today=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  const batchLabel=`${tw.toFixed(1)}g (${(tw/G_PER_OZ).toFixed(2)} oz)`;
+
+  const presetBlend=POPULAR_BLENDS.find(b=>b.id===activePreset);
+  const productName=presetBlend?`${presetBlend.name}`:'Custom Blend';
+
+  document.getElementById('nfContent').innerHTML=`
+    <div class="nf-brand">
+      <div class="nf-brand-logo">Don Cuco's</div>
+      <div class="nf-brand-tagline">Artisan Seasoning Blend</div>
+      <div class="nf-brand-product">${productName} · ${batchLabel}</div>
+      <div class="nf-batch-pills">
+        <span class="nf-pill">${saltLabel}</span>
+        <span class="nf-pill">${sorted.length} Ingredient${sorted.length>1?'s':''}</span>
+        <span class="nf-pill baja">✦ Baja Gold Salt</span>
+        <span class="nf-pill">Made ${today}</span>
+      </div>
+    </div>
+
+    <div class="nf-baja-block">
+      <div class="nf-baja-icon">🌊</div>
+      <div class="nf-baja-text"><strong>Baja Gold Mineral Salt</strong> — sourced from pristine Baja California waters. Contains 80+ trace minerals and up to 30% less sodium chloride than standard table salt, while delivering a fuller, more complex flavor.</div>
+    </div>
+
+    <div class="nf-panel-wrap">
+      <div class="nf-panel">
+        <div class="nf-h1">Nutrition Facts</div>
+        <div class="nf-serving-size">Serving Size 1 tsp (${SERVING_G}g)</div>
+        <div class="nf-servings-per">About ${servings} servings per container</div>
+        <div class="nf-cal-block">
+          <div class="nf-cal-left">
+            <span class="nf-cal-label">Amount Per Serving</span>
+            <span class="nf-cal-label" style="font-size:16px;margin-top:2px">Calories</span>
+          </div>
+          <div class="nf-cal-num">${Math.round(s.cal)}</div>
+        </div>
+        <div class="nf-dv-hdr">% Daily Value*</div>
+        <div class="nfr thick"><div class="nfr-l">Total Fat <span>${s.fat.toFixed(1)}g</span></div><div class="nfr-dv">${dv(s.fat,78)}</div></div>
+        <div class="nfr nfr-ind">Saturated Fat ${s.satFat.toFixed(1)}g<div class="nfr-dv">${dv(s.satFat,20)}</div></div>
+        <div class="nfr nfr-ind med"><em>Trans</em> Fat 0g<div></div></div>
+        <div class="nfr thick"><div class="nfr-l">Cholesterol 0mg</div><div class="nfr-dv">0%</div></div>
+        <div class="nfr thick"><div class="nfr-l">Sodium <span>${Math.round(s.sodium)}mg</span></div><div class="nfr-dv">${dv(s.sodium,2300)}</div></div>
+        <div class="nfr thick"><div class="nfr-l">Total Carbohydrate <span>${s.carb.toFixed(1)}g</span></div><div class="nfr-dv">${dv(s.carb,275)}</div></div>
+        <div class="nfr nfr-ind">Dietary Fiber ${s.fiber.toFixed(1)}g<div class="nfr-dv">${dv(s.fiber,28)}</div></div>
+        <div class="nfr nfr-ind">Total Sugars ${s.sugar.toFixed(1)}g<div></div></div>
+        <div class="nfr nfr-ind2 med">Includes 0g Added Sugars<div class="nfr-dv">0%</div></div>
+        <div class="nfr thick" style="border-bottom:4px solid #111"><div class="nfr-l">Protein <span>${s.protein.toFixed(1)}g</span></div><div class="nfr-dv"></div></div>
+        <div class="nfr"><div>Vitamin D 0mcg</div><div class="nfr-dv">0%</div></div>
+        <div class="nfr"><div>Calcium ~5mg</div><div class="nfr-dv">${dv(5,1300)}</div></div>
+        <div class="nfr"><div>Iron ${s.iron.toFixed(1)}mg</div><div class="nfr-dv">${dv(s.iron,18)}</div></div>
+        <div class="nfr" style="border-bottom:none"><div>Potassium ~20mg</div><div class="nfr-dv">${dv(20,4700)}</div></div>
+        <div class="nf-footer">* The % Daily Value (DV) tells you how much a nutrient in a serving contributes to a daily diet. 2,000 calories a day is used for general nutrition advice. † Sodium values reflect Baja Gold Mineral Salt (~326mg Na/g vs ~387mg/g for table salt).</div>
+      </div>
+    </div>
+
+    <div class="nf-ing-block">
+      <div class="nf-ing-title">Ingredients:</div>
+      <div class="nf-ing-list">${ingList}</div>
+    </div>
+
+    <div class="nf-disclaimer">
+      Nutritional values are estimates derived from USDA FoodData Central. Baja Gold Salt sodium values reflect its mineral composition (~84% NaCl, 80+ trace minerals). Actual values vary by batch and processing. This label is for informational purposes only and is not certified for commercial use.
+    </div>
+  `;
+
+  document.getElementById('nfOverlay').classList.add('open');
+}
+
+function closeNutrition(){document.getElementById('nfOverlay').classList.remove('open');}
+function overlayClick(e){if(e.target===document.getElementById('nfOverlay'))closeNutrition();}
+
+// ── COPY ─────────────────────────────────────────────────────────────────────
+function copyBlend(){
+  const tw=getTotalWeightG(), saltG=tw*(saltRatio/100);
+  let tot=0; selected.forEach(n=>tot+=sliderValues[n]);
+  const presetBlend=POPULAR_BLENDS.find(b=>b.id===activePreset);
+  const titleLine=presetBlend?`DON CUCO'S ${presetBlend.name.toUpperCase()}`:"DON CUCO'S CUSTOM BLEND";
+  let text=`${titleLine}\nBaja Gold Salt: ${saltRatio}% | Batch: ${fmtWeight(tw)}\n${'─'.repeat(42)}\n`;
+  selected.forEach(name=>{
+    const pct=tot>0?(sliderValues[name]/tot)*(100-saltRatio):0;
+    const g=(pct/100)*tw;
+    text+=`${name.padEnd(24)} ${fmtWeight(g).padEnd(10)}  (${(g*(TSP_PER_G[name]||.45)).toFixed(2)} tsp)\n`;
+  });
+  if(saltRatio>0) text+=`${'Baja Gold Salt ✦'.padEnd(24)} ${fmtWeight(saltG).padEnd(10)}  (${(saltG*.35).toFixed(2)} tsp)\n`;
+  text+=`${'─'.repeat(42)}\nTOTAL                    ${fmtWeight(tw)}\n`;
+  navigator.clipboard.writeText(text).then(()=>{
+    const b=event.target; b.textContent='✓ Copied!';
+    setTimeout(()=>b.textContent='⎘ Copy to Clipboard',2000);
+  });
+}
+
+// ── RESET ────────────────────────────────────────────────────────────────────
+function resetAll(){
+  selected.clear();
+  document.querySelectorAll('.spice-item').forEach(el=>el.classList.remove('selected'));
+  document.querySelectorAll('.preset-card').forEach(c=>c.classList.remove('active'));
+  SPICES.forEach(s=>sliderValues[s.name]=s.default);
+  document.getElementById('customRatios').classList.remove('visible');
+  document.getElementById('sliderContainer').innerHTML='';
+  document.getElementById('totalWeight').value=4;
+  document.getElementById('totalWeight').step='.01';
+  document.getElementById('btnNutrition').style.display='none';
+  unitMode='oz';
+  document.getElementById('weightUnitLabel').textContent='OZ';
+  document.getElementById('btnG').classList.remove('active');
+  document.getElementById('btnOz').classList.add('active');
+  activePreset=null;
+  setSalt(0); renderBlend();
+}
+
+buildPresets();
+buildSpiceGrid();
+renderBlend();
+
+// ── COPYCAT ───────────────────────────────────────────────────────────────────
+const AVAILABLE_SPICES = SPICES.map(s=>s.name).join(', ');
+
+async function runCopycat(){
+  const input = document.getElementById('copycatInput').value.trim();
+  if(!input) return;
+
+  const btn = document.getElementById('copycatBtn');
+  const status = document.getElementById('copycatStatus');
+  btn.disabled = true;
+  status.className = 'copycat-status thinking';
+  status.innerHTML = '<span class="copycat-spinner"></span> Reverse-engineering blend…';
+
+  const prompt = `You are a spice blend expert. The user wants to reproduce a copycat version of: "${input}"
+
+Your job is to approximate this blend using ONLY spices from this list:
+${AVAILABLE_SPICES}
+
+Also decide an appropriate Baja Gold Salt ratio (0, 25, 50, or 75) — where 0 = no salt, 25 = lightly salted, 50 = normally salted, 75 = heavily salted.
+
+Respond with ONLY a valid JSON object in this exact format, no markdown, no explanation:
+{
+  "name": "display name for the blend",
+  "icon": "a single relevant emoji",
+  "saltRatio": 25,
+  "desc": "2-3 word flavor description using · as separator",
+  "spices": {
+    "Spice Name": proportionNumber,
+    "Spice Name": proportionNumber
+  }
+}
+
+The proportion numbers are relative weights (they don't need to sum to 100). Use 3–10 spices. Be accurate to the real blend's flavor profile.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{role:'user', content: prompt}]
+      })
+    });
+    const data = await response.json();
+    const text = data.content.map(b=>b.text||'').join('').trim();
+    const clean = text.replace(/```json|```/g,'').trim();
+    const blend = JSON.parse(clean);
+
+    // Validate spices exist in our list
+    const validSpices = {};
+    Object.entries(blend.spices).forEach(([name, val]) => {
+      if(SPICES.find(s=>s.name===name)) validSpices[name] = val;
+    });
+    if(!Object.keys(validSpices).length) throw new Error('No matching spices found');
+    blend.spices = validSpices;
+
+    // Apply the blend
+    blend.id = 'copycat-' + Date.now();
+    selected.clear();
+    document.querySelectorAll('.spice-item').forEach(el=>el.classList.remove('selected'));
+    document.querySelectorAll('.preset-card').forEach(c=>c.classList.remove('active'));
+    setSalt(blend.saltRatio||0);
+    Object.entries(blend.spices).forEach(([name, val])=>{
+      selected.add(name);
+      sliderValues[name] = val;
+      const el = [...document.querySelectorAll('.spice-item')].find(el=>el.querySelector('.spice-name').textContent===name);
+      if(el) el.classList.add('selected');
+    });
+    activePreset = null;
+    document.getElementById('blendTitle').textContent = `${blend.icon} CopyCat: ${blend.name}`;
+    updateSliders();
+    renderBlend();
+
+    status.className = 'copycat-status success';
+    status.innerHTML = `✓ Reproduced "${blend.name}" — ${Object.keys(blend.spices).length} spices loaded`;
+    setTimeout(()=>document.querySelector('.results-card').scrollIntoView({behavior:'smooth',block:'start'}),150);
+  } catch(err) {
+    status.className = 'copycat-status error';
+    status.innerHTML = '✕ Could not reproduce blend — try a different name';
+    console.error(err);
+  }
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
